@@ -1,0 +1,124 @@
+//@author: Duc-Thuan Vo
+//@email: thuanvd@gmail.com
+
+package QuickSort;
+
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.lang.*;
+
+public class QuicksortTheards extends Thread{
+  
+	//public static final int MAX_THREADS = Runtime.getRuntime().availableProcessors();
+	public static int MAX_THREADS=1;
+	final ExecutorService executor = Executors.newFixedThreadPool(MAX_THREADS);
+    CountDownLatch doneSignal;
+    static int num_threads = 1;
+
+    Item[] my_array;
+    int start, end;
+
+    public QuicksortTheards(CountDownLatch doneSignal, Item[] array, int start, int end) {
+        this.my_array = array;
+        this.start = start;
+        this.end = end;
+        this.doneSignal = doneSignal;
+    }
+
+    public static void reset() {
+        num_threads = 1;
+    }
+
+    public void run() {
+        quicksort(my_array, start, end);
+        doneSignal.countDown();
+        num_threads--;
+    }
+    
+    private void exchange(Item[] array, int i, int j) {
+		Item temp = array[i];
+		array[i] = array[j];
+		array[j] = temp;
+	}
+    
+    public void quicksort(Item[] array, int start, int end) {
+        
+    	int len = end-start+1;
+
+        if (len <= 1)
+            return;
+
+        //int pivot_index = medianOfThree(array, start, end);
+        int pivot_index = (start + end) / 2;
+        String pivotValue = array[pivot_index].value;
+
+        exchange(array, pivot_index, end);
+
+        int storeIndex = start;
+        for (int i = start; i < end; i++) {
+           if (array[i].value.compareTo(pivotValue)<1) {
+               exchange(array, i, storeIndex);
+               storeIndex++;
+           }
+        }
+
+        exchange(array, storeIndex, end);
+
+        if (num_threads <MAX_THREADS ) { //MAX_THREADS
+            num_threads++;
+
+            CountDownLatch completionSignal = new CountDownLatch(1);
+
+            new QuicksortTheards(completionSignal, array, start, storeIndex - 1).start();
+            quicksort(array, storeIndex + 1, end);
+
+            try {
+            
+            	completionSignal.await(1000, TimeUnit.SECONDS);
+            
+            } catch(Exception ex) {
+                ex.printStackTrace();
+            }
+        } else {
+            quicksort(array, start, storeIndex - 1);
+            quicksort(array, storeIndex + 1, end);
+        }
+    }
+    
+    public static void main(String args[]) throws IOException{
+    	
+    	
+    	String FileName=args[0];
+    	int ColumnPosition=Integer.parseInt(args[1]);
+    	int NumThreads=Integer.parseInt(args[2]);
+    	String Fileouput=args[3];
+    	
+    	if (ColumnPosition<7){
+	    	List<String> liststring=TextProcessing.LoadFile(FileName);
+			Item[] col=TextProcessing.ColumnTSV(liststring, ColumnPosition);
+	    	
+	    	QuicksortTheards.reset();
+	    	QuicksortTheards.MAX_THREADS=NumThreads;
+	    	CountDownLatch completionSignal = new CountDownLatch(1);
+	    	
+	    	new QuicksortTheards(completionSignal, col, 0, col.length-1).start();
+	    	
+	    	try {
+	    	    completionSignal.await(1000, TimeUnit.SECONDS);
+	    	} catch(Exception ex){
+	    	    ex.printStackTrace();
+	    	}
+	    	
+	    	TextProcessing.outputFile(Fileouput, col, liststring);
+			
+	    
+    	}else{
+    		System.out.println("Column position must be in range 0-6");
+    		
+    	}
+    	
+    	
+    }
+    
+}
