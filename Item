@@ -1,0 +1,24 @@
+//@author: Duc-Thuan Vo
+//@email: thuanvd@gmail.com
+
+package QuickSort;
+
+public class Item {
+
+  public int index=-1;
+	public String value="";
+	
+	public Item(int Index, String Value){
+		
+		this.index=Index;
+		this.value=Value;
+		
+	}
+	
+	public Item(){
+		
+		this.index=-1;
+		this.value="";
+	}
+
+}
