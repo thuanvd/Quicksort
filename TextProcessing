@@ -1,0 +1,129 @@
+//@author: Duc-Thuan Vo
+//@email: thuanvd@gmail.com
+
+package QuickSort;
+
+import java.io.*;
+import java.util.*;
+import java.lang.Object;
+
+public class TextProcessing {
+
+  public static String[] stringtoArray( String txtString) {
+		
+		String formattedStr=txtString;
+		formattedStr=formattedStr.replaceAll("\t", "-tab-");  //used to locate separated value
+		
+		String[] arr=formattedStr.split("-tab-");
+		return arr;
+	}
+	
+	public static List<String> LoadFile(String fileName) throws IOException{
+		
+		List<String> result=new ArrayList<String>();
+	
+		int count=0;
+		
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String sentence="";
+		
+		while((sentence = br.readLine()) != null){
+			String formattedStr=sentence;
+			//formattedStr=formattedStr.replaceAll("\t", "-tab-");  //used to locate separated value
+			result.add(formattedStr);	
+		}
+		return result;
+		
+	}
+	
+	public static Item[] ColumnTSV(List<String> loadfile, int pos){
+		
+		Item[] result=new Item[loadfile.size()];
+		
+		for (int i = 0; i < loadfile.size(); i++) {
+
+			// load row then convert to array
+			String[] row=stringtoArray(loadfile.get(i));
+			Item item=new Item();
+
+			// add cell wih pos position
+			
+			if (row.length>pos) {     //case pos>lenght of row  
+				
+				item.index=i;
+				item.value=row[pos];
+				
+			}else{
+				
+				item.index=i;
+				item.value=" ";
+				
+			}
+				
+			result[i]=item;
+			
+		}
+		
+		return result;
+	}
+	
+	// return 1: str1>str2
+	//        0: str1<str2 
+	public static int CompareString(String str1, String str2){
+		int result=0;
+		
+		if (str1.compareTo(str2)>0) {
+			result=1;
+		}
+		
+		return result;
+		
+	}
+	
+	
+	//Output file
+	public static void outputFile(String FileName,Item[] ColumnSorted, List<String> Loadfile){
+		//output based on index of columsorted
+		try {
+			
+			FileOutputStream OutputFile = new FileOutputStream(FileName);
+			OutputStreamWriter Output = new OutputStreamWriter(OutputFile, "utf-8");
+			
+			System.out.println("File is writing...");
+			
+			for (int i = 0; i < ColumnSorted.length; i++) {
+			
+				int postion=ColumnSorted[i].index;
+				String sentence=Loadfile.get(postion);
+				Output.write(sentence);
+				Output.write("\n");
+			}
+			
+			Output.close();
+		
+			System.out.println("Output file is sucessful!");
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+	}
+	
+	public static void main(String[] args) throws IOException {
+		
+		//Using for test running
+
+		String file="E://fbk//data//test-jacopo.tsv";
+		List<String> abc=LoadFile(file);
+		
+		Item[] col=ColumnTSV(abc,7);
+		
+		for (int i = 0; i < col.length; i++) {
+			System.out.print(col[i].index);
+			System.out.print("  ");
+			System.out.println(col[i].value);
+		}
+		
+	}
+
+}
+
